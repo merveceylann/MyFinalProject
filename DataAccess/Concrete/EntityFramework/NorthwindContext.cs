@@ -12,7 +12,7 @@ namespace DataAccess.Concrete.EntityFramework
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Data Source=LAPTOP-ANT6KM3G\MS;Initial Catalog=Northwind;User ID=sa;Password=1234");
+            optionsBuilder.UseSqlServer(@"Data Source=LAPTOP-ANT6KM3G\MSSQLSERVER1;Initial Catalog=Northwind;User ID=sa;Password=1234");
         }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
