@@ -11,7 +11,6 @@ namespace WebAPI.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-
         //loosely coupled
         //naming convention
         //IoC Container -- invercion of control (program.cs)

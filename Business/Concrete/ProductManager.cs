@@ -1,10 +1,15 @@
 ﻿using Business.Abstract;
+using Business.CCS;
 using Business.Constants;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using DataAccess.Concrete.InMemory;
 using Entities.Concrete;
 using Entities.DTOs;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,24 +23,64 @@ namespace Business.Concrete
         //bir is sinifi baska bir sinifi newlemez
         //ayni anda birden fazla sonuc dondurmek istersem encapsulation 
         IProductDal _productDal;
+        //ILogger _logger;
 
         public ProductManager(IProductDal productDal)
         {
             _productDal = productDal;
+            //_logger = logger;
         }
 
+        [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
-            if (product.ProductName.Length < 2)
-            {
-                //magic strings
-                //return new ErrorResult("Urun ismi min 2 karekter olmalidir.");
-                return new ErrorResult(Messages.ProductNameInvalid);
-            }
+            //business codes
+            //validation 
+
+            //if (product.ProductName.Length < 2)
+            //{
+            //    //magic strings
+            //    //return new ErrorResult("Urun ismi min 2 karekter olmalidir.");
+            //    return new ErrorResult(Messages.ProductNameInvalid);
+            //}
             //if calisirsa return result olacagi icin else gerek yok 
-            _productDal.Add(product);
-            //return new SuccessResult("Urun Eklendi");
-            return new SuccessResult(Messages.ProductAdded);
+
+            //ValidationTool.Validate(new ProductValidator(), product);
+
+            //loglama
+            //cacheremove
+            //performance
+            //transaction
+            //yetkilendirme
+
+            //business codes
+
+            //_logger.Log();
+            //try
+            //{
+            //    _productDal.Add(product);
+
+            //    //return new SuccessResult("Urun Eklendi");
+            //    return new SuccessResult(Messages.ProductAdded);
+            //}
+            //catch (Exception exception)
+            //{
+            //    throw;
+            //}
+            //return new ErrorResult();
+
+            if (CheckIfProductCountOfCategoryCorrect(product.CategoryId).Success)
+            {
+                if (CheckIfProductNameExists(product.ProductName).Success)
+                {
+                    _productDal.Add(product);
+
+                    //return new SuccessResult("Urun Eklendi");
+                    return new SuccessResult(Messages.ProductAdded);
+                }
+            }
+            return new ErrorResult();
+
         }
 
         public IDataResult<List<Product>> GetAll()
@@ -74,6 +119,38 @@ namespace Business.Concrete
             }
             return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
         }
+
+        [ValidationAspect(typeof(ProductValidator))]
+        public IResult Update(Product product)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
+        {
+            //bir kategoride en fazla 10 urun olabilir
+
+            //select count(*) from products where categoryId=1
+            var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
+            if (result >= 10)
+            {
+                return new ErrorResult(Messages.ProductCountOfCategoryError);
+            }
+            return new SuccessResult(); //mesaja gerek yok burada cunku kuraldan geciyo
+        }
+
+        private IResult CheckIfProductNameExists(string productName)
+        {
+            //ayni isimde urun eklenemez
+
+            var result = _productDal.GetAll(p => p.ProductName == productName).Any();
+            if (result)
+            {
+                return new ErrorResult(Messages.ProductNameAlreadyExists);
+            }
+            return new SuccessResult();
+        }
+
     }
 }
 
