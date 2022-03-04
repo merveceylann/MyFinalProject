@@ -4,6 +4,7 @@ using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using DataAccess.Concrete.InMemory;
@@ -25,9 +26,13 @@ namespace Business.Concrete
         IProductDal _productDal;
         //ILogger _logger;
 
-        public ProductManager(IProductDal productDal)
+        //ICategoryDal _categoryDal; bunu yapayiz
+        ICategoryService _categoryService;
+
+        public ProductManager(IProductDal productDal, ICategoryService categoryService)
         {
             _productDal = productDal;
+            _categoryService = categoryService;
             //_logger = logger;
         }
 
@@ -69,18 +74,28 @@ namespace Business.Concrete
             //}
             //return new ErrorResult();
 
-            if (CheckIfProductCountOfCategoryCorrect(product.CategoryId).Success)
+            //if (CheckIfProductCountOfCategoryCorrect(product.CategoryId).Success)
+            //{
+            //    if (CheckIfProductNameExists(product.ProductName).Success)
+            //    {
+            //        _productDal.Add(product);
+
+            //        //return new SuccessResult("Urun Eklendi");
+            //        return new SuccessResult(Messages.ProductAdded);
+            //    }
+            //}
+            //return new ErrorResult();
+
+            //burada polimorphism var
+            IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName), CheckIfProductCountOfCategoryCorrect(product.CategoryId),CheckIfCategoryLimitExceded());
+
+            if (result != null) //yani kurala uymayan bir durum olustuysa
             {
-                if (CheckIfProductNameExists(product.ProductName).Success)
-                {
-                    _productDal.Add(product);
-
-                    //return new SuccessResult("Urun Eklendi");
-                    return new SuccessResult(Messages.ProductAdded);
-                }
+                return result;
             }
-            return new ErrorResult();
 
+            _productDal.Add(product);
+            return new SuccessResult(Messages.ProductAdded);
         }
 
         public IDataResult<List<Product>> GetAll()
@@ -147,6 +162,19 @@ namespace Business.Concrete
             if (result)
             {
                 return new ErrorResult(Messages.ProductNameAlreadyExists);
+            }
+            return new SuccessResult();
+        }
+
+        private IResult CheckIfCategoryLimitExceded()
+        {
+            //mevcut category sayisi 15i gectiyse sisteme yeni urun eklenemez
+
+            //var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Distinct().Count();
+            var result = _categoryService.GetAll();
+            if (result.Data.Count > 15)
+            {
+                return new ErrorResult(Messages.CategoryLimitExceded);
             }
             return new SuccessResult();
         }

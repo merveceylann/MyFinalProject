@@ -15,6 +15,7 @@ namespace Business.Constants
         public static string MaintenanceTime = "Sistem bakimda";
         public static string ProductCountOfCategoryError = "Urun sayisi 10 dan kucuk olmali!";
         public static string ProductNameAlreadyExists = "Boyle bir urun var";
+        internal static string CategoryLimitExceded = "Category limiti asildi";
     }
 }
 
