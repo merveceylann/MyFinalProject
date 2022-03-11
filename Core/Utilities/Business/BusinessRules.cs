@@ -16,7 +16,7 @@ namespace Core.Utilities.Business
                 if (!logic.Success)
                 {
                     return logic;
-                    //hatali olan logicten businessi haberdar et
+                    //paramtere ile gelen, hatali olan logicten businessi haberdar et
                 }
             }
             return null;

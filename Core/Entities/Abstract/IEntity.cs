@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Abstract
+namespace Core.Entities.Abstract
 {
     //IEntity implemente eden class bir veritabani tablosusudur.
     public interface IEntity
