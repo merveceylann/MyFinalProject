@@ -20,9 +20,11 @@ namespace Business.Abstract
 
         IDataResult<Product> GetById(int productId);
         IResult Add(Product product);  //bunlarin tamamini birer istek haline getirecegim
-        IResult Update(Product product); 
+        IResult Update(Product product);
 
         //RESTFUL --> HTTP / TCP
         //(http: bir kaynaga ulasmak icin izledigimiz yol)
+
+        IResult AddTransactionTest(Product product);
     }
 }

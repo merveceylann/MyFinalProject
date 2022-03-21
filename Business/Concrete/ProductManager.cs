@@ -3,6 +3,9 @@ using Business.BusinessAspect.Autofac;
 using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -17,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace Business.Concrete
 {
@@ -38,8 +42,9 @@ namespace Business.Concrete
         }
 
         //Claim
-        [SecuredOperation("admin,editor")]
+        //[SecuredOperation("product.add,editor")]
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Add(Product product)
         {
             //business codes
@@ -90,7 +95,7 @@ namespace Business.Concrete
             //return new ErrorResult();
 
             //burada polimorphism var
-            IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName), CheckIfProductCountOfCategoryCorrect(product.CategoryId),CheckIfCategoryLimitExceded());
+            IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName), CheckIfProductCountOfCategoryCorrect(product.CategoryId), CheckIfCategoryLimitExceded());
 
             if (result != null) //yani kurala uymayan bir durum olustuysa
             {
@@ -101,6 +106,7 @@ namespace Business.Concrete
             return new SuccessResult(Messages.ProductAdded);
         }
 
+        [CacheAspect] //key,value
         public IDataResult<List<Product>> GetAll()
         {
             //is kodlari
@@ -119,6 +125,8 @@ namespace Business.Concrete
             return new SuccessDataResult<List<Product>>(_productDal.GetAll(p => p.CategoryId == id));
         }
 
+        [CacheAspect]
+        [PerformanceAspect(5)]
         public IDataResult<Product> GetById(int productId)
         {
             return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductID == productId));
@@ -139,6 +147,7 @@ namespace Business.Concrete
         }
 
         [ValidationAspect(typeof(ProductValidator))]
+        [CacheRemoveAspect("IProductService.Get")]
         public IResult Update(Product product)
         {
             throw new NotImplementedException();
@@ -182,6 +191,42 @@ namespace Business.Concrete
             return new SuccessResult();
         }
 
+        [TransactionScopeAspect]
+        public IResult AddTransactionTest(Product product)
+        {
+            //disposable patternda transaction scope denilen bir yapi vardir
+            //fakat bu asagida yazilan yerine aspect yazilabilir.
+
+            //using (TransactionScope scope = new TransactionScope())
+            //{
+            //    try
+            //    {
+            //        Add(product);
+            //        if (product.UnitPrice < 10)
+            //        {
+            //            throw new Exception("");
+            //        }
+
+            //        Add(product);
+
+            //        scope.Complete();
+            //    }
+            //    catch (Exception)
+            //    {
+            //        scope.Dispose();
+            //    }
+            //}
+
+            Add(product);
+            if (product.UnitPrice < 10)
+            {
+                throw new Exception("");
+            }
+
+            Add(product);
+
+            return null;
+        }
     }
 }
 

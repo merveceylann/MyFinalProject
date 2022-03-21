@@ -9,6 +9,7 @@ namespace Core.Utilities.IoC
 {
     public static class ServiceTool
     {
+        //baska projelerdede DI kullanabilmek icin
         public static IServiceProvider ServiceProvider { get; private set; }
 
         public static IServiceCollection Create(IServiceCollection services)

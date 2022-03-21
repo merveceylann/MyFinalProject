@@ -58,6 +58,7 @@ namespace Core.Utilities.Security.JWT
 
         private IEnumerable<Claim> SetClaims(User user, List<OperationClaim> operationClaims)
         {
+            //burasi icin extensions yazacagiz yani genisletecegiz
             var claims = new List<Claim>();
             claims.AddNameIdentifier(user.Id.ToString());
             claims.AddEmail(user.Email);
